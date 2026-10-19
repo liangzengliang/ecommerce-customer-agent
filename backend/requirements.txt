@@ -1,0 +1,49 @@
+# ===== Web 框架 =====
+fastapi==0.115.0
+uvicorn==0.32.0
+python-multipart==0.0.12
+
+# ===== 数据库 =====
+aiosqlite==0.20.0   # SQLite 异步驱动（演示模式）
+sqlalchemy==2.0.36
+aiomysql==0.2.0
+pymysql==1.1.1
+alembic==1.13.3
+
+# ===== 缓存 =====
+redis==5.2.0
+
+# ===== LangChain 生态 =====
+langchain==1.2.12
+langchain-core>=1.6.4,<2.0.0
+langgraph==1.1.2
+langchain-openai==1.1.1
+langchain-redis==0.2.5
+langchain-milvus==0.3.3
+# langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0
+
+# ===== 向量库 =====
+pymilvus>=2.6.0,<3.0.0
+
+# ===== 嵌入与 Token =====
+tiktoken>=0.7.0,<1.0.0
+
+# ===== 认证 =====
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+email-validator==2.2.0
+
+# ===== 配置 =====
+pydantic==2.10.0
+pydantic-core==2.27.0
+pydantic-settings==2.6.0
+python-dotenv==1.0.1
+PyYAML==6.0.2
+
+# ===== 异步任务 =====
+celery==5.4.0
+
+# ===== HTTP =====
+httpx==0.27.2
+

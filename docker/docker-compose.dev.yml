@@ -1,0 +1,65 @@
+# ============================================================
+# 开发环境编排
+# 只容器化后端 + 前端，MySQL/Redis/Milvus 用外部服务
+# 适用：服务已在别的机器或 Docker Desktop 上跑
+# ============================================================
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: cs-backend-dev
+    restart: unless-stopped
+    environment:
+      # 外部服务地址（按你的实际环境改）
+      DATABASE_URL: ${DATABASE_URL:-mysql+aiomysql://root:YOUR_DB_PASSWORD@YOUR_MYSQL_HOST:3306/customer_service}
+      REDIS_URL: ${REDIS_URL:-redis://:YOUR_REDIS_PASSWORD@YOUR_REDIS_HOST:6379/0}
+      MILVUS_HOST: ${MILVUS_HOST:-host.docker.internal}
+      MILVUS_PORT: ${MILVUS_PORT:-19530}
+      MILVUS_COLLECTION: ecommerce_knowledge
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.siliconflow.cn/v1}
+      LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-${OPENAI_API_KEY}}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-${OPENAI_BASE_URL}}
+
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      TZ: Asia/Shanghai
+    volumes:
+      - ../backend:/app
+      - ../knowledge_base:/knowledge_base:ro
+      - ../logs:/app/logs
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    # Windows Docker Desktop 需要用这个访问宿主机服务
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - cs-dev-network
+
+  frontend:
+    image: node:22-alpine
+    container_name: cs-frontend-dev
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+    networks:
+      - cs-dev-network
+
+networks:
+  cs-dev-network:
+    driver: bridge

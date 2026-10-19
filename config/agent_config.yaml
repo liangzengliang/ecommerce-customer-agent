@@ -1,0 +1,157 @@
+# ============================================================
+# Agent 配置
+# 定义 LangGraph 工作流、ReAct 循环、工具调用、记忆管理、人工转接等
+# ============================================================
+
+# ----- 工作流 -----
+workflow:
+  # 图类型：langgraph
+  engine: langgraph
+  # 是否启用检查点（断点恢复）
+  enable_checkpoint: false
+  # 最大迭代次数（防止死循环）
+  max_iterations: 5
+  # 单次对话最大耗时（秒）
+  max_duration_seconds: 60
+
+# ----- ReAct 循环 -----
+react:
+  enabled: true
+  # 最大思考-行动轮次
+  max_steps: 5
+  # 是否允许并行调用多个工具
+  parallel_tools: false
+  # 思考过程是否输出到日志
+  verbose: true
+
+# ----- 工具调用 -----
+tools:
+  # 工具注册表
+  registry:
+    - name: search_knowledge
+      description: 检索知识库，回答商品政策等问题
+      module: app.agents.tools.search_knowledge
+      function: search_knowledge
+      enabled: true
+
+    - name: query_order
+      description: 根据订单号查询订单状态
+      module: app.agents.tools.query_order
+      function: query_order
+      enabled: true
+
+    - name: query_product
+      description: 根据关键词查询商品信息
+      module: app.agents.tools.query_product
+      function: query_product
+      enabled: true
+
+    - name: request_refund
+      description: 提交退款申请
+      module: app.agents.tools.refund_tool
+      function: request_refund
+      enabled: true
+
+    - name: create_ticket
+      description: 创建工单，用于投诉、退款等需要人工处理的事项
+      module: app.agents.tools.create_ticket
+      function: create_ticket
+      enabled: true
+
+    - name: transfer_human
+      description: 转接人工客服
+      module: app.agents.tools.transfer_human
+      function: transfer_human
+      enabled: true
+
+  # 工具调用超时（秒）
+  timeout: 10
+  # 失败重试次数
+  max_retries: 2
+  # 是否需要用户确认（如退款等敏感操作）
+  require_confirmation_for:
+    - request_refund
+    - create_ticket
+
+# ----- 记忆管理 -----
+memory:
+  # 短期记忆：Redis 会话历史
+  short_term:
+    enabled: true
+    backend: redis
+    # 保留最近 N 轮对话（1轮=用户+机器人）
+    max_turns: 10
+    # 过期时间（秒）
+    ttl: 86400
+    # Redis key 前缀
+    key_prefix: "session:"
+    key_suffix: ":history"
+
+  # 长期记忆：向量库（用户历史偏好）
+  long_term:
+    enabled: false                     # 初期关闭，后续可启用
+    backend: milvus
+    collection: user_memory
+    max_items: 50
+
+# ----- 人工转接 -----
+human_transfer:
+  # 触发条件
+  triggers:
+    # 用户主动要求
+    - type: user_request
+      enabled: true
+    # 负面情绪超过阈值
+    - type: negative_sentiment
+      threshold: 0.8
+      enabled: true
+    # Agent 连续失败
+    - type: agent_failure
+      max_retries: 2
+      enabled: true
+    # 超出 LLM 能力范围
+    - type: out_of_scope
+      enabled: true
+  # 转接后的话术
+  message: "非常抱歉给您带来不便，我已为您转接人工客服，请稍等片刻。"
+  # 是否自动分配在线客服
+  auto_assign: true
+  # 分配策略：round_robin / least_busy / skill_match
+  assign_strategy: least_busy
+
+# ----- 会话状态 -----
+session:
+  # 会话超时时间（秒），超过则自动关闭
+  timeout: 1800
+  # 是否允许多轮追问
+  allow_multi_turn: true
+  # 单会话最大消息数
+  max_messages: 100
+
+# ----- 对话生成 -----
+generation:
+  # 系统提示词文件（可外部化）
+  system_prompt_file: app/agents/prompts/system_prompt.py
+  # 回复长度限制
+  max_length: 200
+  # 是否在回复中显示引用来源
+  show_references: false
+  # 回复风格：professional / friendly / concise
+  style: friendly
+
+# ----- 可观测性 -----
+observability:
+  # 是否记录每次 Agent 执行的完整链路
+  trace_enabled: true
+  # 记录到日志的内容
+  log_fields:
+    - session_id
+    - user_message
+    - intent_code
+    - sentiment
+    - tools_called
+    - final_response
+    - duration_ms
+    - token_usage
+  # 是否上报到 Prometheus
+  metrics_enabled: false

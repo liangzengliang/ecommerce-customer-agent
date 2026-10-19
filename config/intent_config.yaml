@@ -1,0 +1,240 @@
+# ============================================================
+# 意图识别配置
+# 定义意图分类体系、意图编码、处理类型、必需槽位、工具映射
+# ============================================================
+
+# ----- 意图分类体系 -----
+intents:
+  # ========== 商品与活动咨询类 ==========
+  - code: PRD_001
+    name: 商品详情
+    category: 商品与活动咨询
+    handler_type: rag                  # 处理类型：rag / tool / transfer / fallback
+    priority: 1
+    required_slots: []                 # 无需槽位
+    tools: [search_knowledge]          # 关联工具
+    description: 用户询问商品的详细信息
+
+  - code: PRD_002
+    name: 促销活动
+    category: 商品与活动咨询
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PRD_003
+    name: 商品推荐
+    category: 商品与活动咨询
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge, query_product]
+
+  - code: PRD_004
+    name: 会员权益
+    category: 商品与活动咨询
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PRD_005
+    name: 配送时效
+    category: 商品与活动咨询
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PRD_006
+    name: 库存查询
+    category: 商品与活动咨询
+    handler_type: tool
+    priority: 2
+    required_slots: [product_name]
+    tools: [query_product]
+
+  # ========== 订单与物流服务类 ==========
+  - code: ORD_001
+    name: 订单查询
+    category: 订单与物流
+    handler_type: tool
+    priority: 3
+    required_slots: [order_no]
+    tools: [query_order]
+
+  - code: ORD_002
+    name: 订单修改
+    category: 订单与物流
+    handler_type: tool
+    priority: 3
+    required_slots: [order_no]
+    tools: [query_order]
+
+  - code: ORD_003
+    name: 取消订单
+    category: 订单与物流
+    handler_type: tool
+    priority: 4
+    required_slots: [order_no]
+    tools: [query_order, create_ticket]
+
+  - code: ORD_004
+    name: 物流追踪
+    category: 订单与物流
+    handler_type: tool
+    priority: 3
+    required_slots: [order_no]
+    tools: [query_order]
+
+  - code: ORD_005
+    name: 催促发货
+    category: 订单与物流
+    handler_type: tool
+    priority: 3
+    required_slots: [order_no]
+    tools: [query_order, create_ticket]
+
+  - code: ORD_006
+    name: 修改地址
+    category: 订单与物流
+    handler_type: tool
+    priority: 4
+    required_slots: [order_no]
+    tools: [query_order, create_ticket]
+
+  # ========== 支付与售后支持类 ==========
+  - code: PAY_001
+    name: 支付问题
+    category: 支付与售后
+    handler_type: rag
+    priority: 2
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PAY_002
+    name: 申请退款
+    category: 支付与售后
+    handler_type: tool
+    priority: 5
+    required_slots: [order_no]
+    tools: [request_refund, create_ticket]
+
+  - code: PAY_003
+    name: 优惠券使用
+    category: 支付与售后
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PAY_004
+    name: 售后政策
+    category: 支付与售后
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  - code: PAY_005
+    name: 发票问题
+    category: 支付与售后
+    handler_type: rag
+    priority: 1
+    required_slots: []
+    tools: [search_knowledge]
+
+  # ========== 投诉与人工兜底类 ==========
+  - code: CMP_001
+    name: 投诉建议
+    category: 投诉与人工
+    handler_type: tool
+    priority: 5
+    required_slots: []
+    tools: [create_ticket]
+    # 投诉类工单自动升级优先级
+    ticket_priority: high
+
+  - code: CMP_002
+    name: 退款退货
+    category: 投诉与人工
+    handler_type: tool
+    priority: 5
+    required_slots: [order_no]
+    tools: [request_refund, create_ticket]
+    ticket_priority: high
+
+  - code: CMP_003
+    name: 人工客服
+    category: 投诉与人工
+    handler_type: transfer
+    priority: 9
+    required_slots: []
+    tools: [transfer_human]
+
+  - code: CMP_004
+    name: 建议反馈
+    category: 投诉与人工
+    handler_type: tool
+    priority: 2
+    required_slots: []
+    tools: [create_ticket]
+
+  - code: FALLBACK
+    name: 闲聊/未知
+    category: 兜底
+    handler_type: fallback
+    priority: 0
+    required_slots: []
+    tools: []
+
+# ----- 分类参数 -----
+classification:
+  # 使用 LLM 做 few-shot 分类
+  method: llm                          # llm / bert / hybrid
+  # 置信度阈值
+  confidence_threshold: 0.6            # 低于该值走 FALLBACK
+  # 是否启用多标签分类（一句话可能命中多个意图）
+  multi_label: false
+  # 是否启用上下文感知（结合多轮对话历史识别意图）
+  context_aware: true
+
+# ----- 槽位配置 -----
+slots:
+  order_no:
+    type: string
+    pattern: "^ORDER\\d{10,}$"         # 订单号正则
+    example: "ORDER20260315001"
+    prompt: "请提供您的订单号"          # 追问话术
+
+  phone:
+    type: string
+    pattern: "^1[3-9]\\d{9}$"
+    example: "13800138000"
+    prompt: "请提供您的手机号"
+
+  product_name:
+    type: string
+    example: "无线耳机"
+    prompt: "请告诉我商品名称"
+
+  refund_reason:
+    type: string
+    enum: ["质量问题", "不喜欢", "发错货", "其他"]
+    prompt: "请说明退款原因"
+
+# ----- 特殊规则 -----
+rules:
+  # 负面情绪 + 投诉类意图 → 强制转人工
+  - condition:
+      sentiment: negative
+      sentiment_score_gt: 0.8
+      intent_category_in: ["投诉与人工"]
+    action: transfer_human
+    priority: 99
+
+  # 高优先级意图 → 跳过 RAG，直接走工具
+  - condition:
+      intent_code_in: ["PAY_002", "CMP_002"]
+    action: skip_rag

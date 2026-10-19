@@ -1,0 +1,85 @@
+# ============================================================
+# LLM 配置
+# 定义模型选择、路由策略、调用参数、成本控制等
+# ============================================================
+
+# ----- 默认模型（用于常规对话生成）-----
+default:
+  provider: openai                    # 使用 OpenAI 兼容协议
+  model: Qwen/Qwen2.5-7B-Instruct     # 模型名称（与 .env 中的 LLM_MODEL 对应）
+  base_url: https://api.siliconflow.cn/v1
+  temperature: 0.3                    # 温度：越低越稳定，越高越有创造性
+  max_tokens: 1024                    # 单次输出最大 token 数
+  top_p: 0.9                          # 核采样
+  timeout: 30                         # 请求超时（秒）
+  max_retries: 2                      # 失败重试次数
+
+# ----- 模型路由策略 -----
+# 不同任务使用不同模型，平衡效果与成本
+routing:
+  # 意图识别：要求稳定、低延迟、便宜
+  intent_classification:
+    model: Qwen/Qwen2.5-7B-Instruct
+    temperature: 0                    # 意图识别必须确定性，温度设为 0
+    max_tokens: 256
+
+  # 情感分析：同理
+  sentiment_analysis:
+    model: Qwen/Qwen2.5-7B-Instruct
+    temperature: 0
+    max_tokens: 128
+
+  # 回复生成：要求质量高，可以稍贵
+  response_generation:
+    model: Qwen/Qwen2.5-7B-Instruct
+    temperature: 0.3
+    max_tokens: 512
+
+  # 复杂推理：走更强的模型（如 GPT-4、Claude）
+  complex_reasoning:
+    model: Qwen/Qwen2.5-72B-Instruct
+    temperature: 0.2
+    max_tokens: 1024
+    # 触发条件：负面情绪 + 投诉 + 金额超过阈值时启用
+
+# ----- 降级策略 -----
+# 主模型失败时的备用模型
+fallback:
+  enabled: true
+  model: Qwen/Qwen2.5-7B-Instruct
+  base_url: https://api.siliconflow.cn/v1
+  max_retries: 3
+
+# ----- 成本控制 -----
+cost_control:
+  # 单次会话 token 上限（超过则截断历史消息）
+  max_tokens_per_session: 8000
+  # 单用户每日 token 上限
+  max_tokens_per_user_per_day: 50000
+  # 是否启用语义缓存（相似问题直接返回缓存答案）
+  semantic_cache_enabled: true
+  # 语义缓存相似度阈值（0-1，越大越严格）
+  semantic_cache_threshold: 0.95
+  # 缓存过期时间（秒）
+  semantic_cache_ttl: 3600
+
+# ----- 流式输出 -----
+streaming:
+  enabled: true                       # 是否开启 SSE 流式
+  chunk_size: 5                       # 每次推送的字符数
+  flush_interval_ms: 50               # 推送间隔（毫秒）
+
+# ----- 安全护栏 -----
+guardrails:
+  # 输入侧
+  input:
+    max_length: 2000                  # 用户输入最大长度
+    sensitive_words_check: true       # 敏感词过滤
+    prompt_injection_check: true      # Prompt 注入检测
+
+  # 输出侧
+  output:
+    sensitive_words_check: true       # 输出敏感词过滤
+    max_length: 2000                  # 输出最大长度
+    # 命中敏感词时的兜底话术
+    fallback_message: "抱歉，我无法回答这个问题，请换个问法或联系人工客服。"

@@ -1,0 +1,112 @@
+# ============================================================
+# RAG 配置
+# 定义文档加载、分块、嵌入、向量检索、精排等参数
+# ============================================================
+
+# ----- 文档加载 -----
+document_loader:
+  # 支持的文件类型
+  supported_types: [txt, md, pdf, docx]
+  # 编码
+  encoding: utf-8
+  # 是否递归扫描子目录
+  recursive: true
+
+# ----- 文本分块 -----
+text_splitter:
+  # 分块策略：recursive / semantic / fixed
+  strategy: recursive
+  chunk_size: 500                      # 每块最大字符数
+  chunk_overlap: 50                    # 块间重叠字符数
+  # 中文友好的分隔符（按优先级）
+  separators:
+    - "\n\n"
+    - "\n"
+    - "。"
+    - "！"
+    - "？"
+    - "；"
+    - "，"
+    - " "
+    - ""
+
+# ----- 嵌入模型 -----
+embedding:
+  provider: huggingface                # huggingface / openai
+  model: BAAI/bge-m3                   # 中文效果好，支持多语言
+  dimension: 1024                       # 向量维度（与 Milvus 集合一致）
+  device: cpu                          # cpu / cuda
+  normalize: true                      # 归一化，便于余弦相似度
+  batch_size: 32                       # 批量编码大小
+  # 缓存目录（避免每次重新下载模型）
+  cache_dir: ./models_cache
+
+# ----- 向量数据库 -----
+vector_store:
+  type: milvus
+  host: localhost
+  port: 19530
+  collection_name: ecommerce_knowledge
+  # 索引类型
+  index_type: IVF_FLAT                 # IVF_FLAT / HNSW / FLAT
+  metric_type: COSINE                  # COSINE / L2 / IP
+  # 索引参数
+  index_params:
+    nlist: 1024                        # 聚类中心数
+    nprobe: 16                         # 搜索时探测的聚类数
+  # 是否自动创建集合
+  auto_create: true
+
+# ----- 检索参数 -----
+retrieval:
+  # 召回数量（进入精排前的候选数）
+  top_k: 10
+  # 精排后返回数量
+  top_n: 5
+  # 相似度阈值（低于该值认为不相关）
+  score_threshold: 0.5
+  # 是否启用 MMR（最大边际相关性，减少结果冗余）
+  use_mmr: true
+  mmr_lambda: 0.5                      # MMR 权衡参数（0-1）
+
+# ----- 精排（Reranker）-----
+reranker:
+  enabled: false                       # 是否需要精排（初期可关闭）
+  provider: huggingface
+  model: BAAI/bge-reranker-base
+  top_k: 5
+  device: cpu
+
+# ----- 上下文拼接 -----
+context:
+  # 拼接模板
+  template: |
+    【知识{i}】{content}
+  # 拼接时的分隔符
+  separator: "\n\n"
+  # 上下文最大长度（超过则截断）
+  max_length: 2000
+
+# ----- 知识库管理 -----
+knowledge_base:
+  # 知识分类目录（与 knowledge_base/ 下对应）
+  categories:
+    - products                         # 商品知识
+    - policies                         # 政策规定
+    - faqs                             # 常见问题
+    - guides                           # 操作指南
+  # 是否自动向量化新导入的知识
+  auto_vectorize: true
+  # 向量化并发数
+  vectorize_concurrency: 4
+
+# ----- 缓存 -----
+cache:
+  # 是否缓存检索结果
+  enabled: true
+  # 缓存键前缀
+  key_prefix: "rag:cache"
+  # 缓存过期时间（秒）
+  ttl: 1800
+  # 相似度阈值（超过该值则命中缓存）
+  similarity_threshold: 0.95
