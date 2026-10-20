@@ -52,7 +52,7 @@ class IntentClassifier:
 
     async def classify(self, text: str) -> dict:
         # 演示模式/LLM 不可用时直接走关键词兜底，避免超时
-        if not is_llm_available():
+        if not await is_llm_available():
             code, name = self._keyword_fallback(text, "闲聊/未知")
             return {"intent_code": code, "intent_name": name, "confidence": 0.6}
 

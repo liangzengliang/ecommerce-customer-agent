@@ -28,7 +28,7 @@ class SentimentAnalyzer:
     async def analyze(self, text: str) -> dict:
         """分析情感"""
         # 演示模式/LLM 不可用时用规则判断
-        if not is_llm_available():
+        if not await is_llm_available():
             return self._rule_analyze(text)
 
         try:

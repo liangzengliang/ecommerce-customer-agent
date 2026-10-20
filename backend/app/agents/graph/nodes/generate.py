@@ -171,7 +171,7 @@ async def generate_response(state: AgentState) -> AgentState:
     ]
 
     # ===== 演示模式/LLM 不可用：走离线规则回复 =====
-    if not is_llm_available():
+    if not await is_llm_available():
         if valid_tools:
             state["final_response"] = _offline_reply_with_tools(state)
         else:

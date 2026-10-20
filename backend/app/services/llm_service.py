@@ -12,13 +12,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def is_llm_available() -> bool:
+async def is_llm_available() -> bool:
     """
-    判断 LLM 是否可用（演示模式未配置 API Key 时返回 False）
+    判断 LLM 是否可用：
+    1. 数据库存在启用的默认对话模型配置（网友在模型配置页面配置的）→ 可用
+    2. 否则 .env 配置了 OPENAI_API_KEY → 可用
+    3. 否则不可用（走离线规则回复）
     """
-    # 演示模式下没有 API Key 则视为不可用
-    if settings.DEMO_MODE and not settings.OPENAI_API_KEY:
-        return False
+    # 1. 数据库有默认模型配置（网友配置的）→ 可用
+    try:
+        db_config = await model_config_service.get_default_chat_model()
+        if db_config:
+            logger.info("LLM 可用：数据库默认模型配置 %s (%s)", db_config['name'], db_config['model'])
+            return True
+    except Exception as e:
+        logger.error("检查数据库模型配置失败: %s", e)
+
+    # 2. .env 有 API Key → 可用
     return bool(settings.OPENAI_API_KEY)
 
 
