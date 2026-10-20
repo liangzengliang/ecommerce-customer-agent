@@ -20,6 +20,9 @@ if sys.platform == "win32":
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 from app.core.logging import setup_logging
 from app.core.redis_client import get_redis
@@ -116,12 +119,37 @@ app.include_router(v1_router, prefix="/api/v1")
 
 
 # ============================================================
+# 前端静态文件目录（演示模式在线部署）
+# ============================================================
+FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+
+
+# ============================================================
 # 健康检查接口
 # ============================================================
 @app.get("/health")
 async def health():
     """健康检查，用于负载均衡/容器探针"""
     return {"status": "ok"}
+
+
+# ============================================================
+# 静态资源托管（前端构建产物）与 SPA 回退
+# ============================================================
+if FRONTEND_DIST.exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """非 API 路径回退到 index.html，实现单页应用路由"""
+        if full_path.startswith("api") or full_path.startswith("health"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+        index_file = FRONTEND_DIST / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
 
 
 # ============================================================
