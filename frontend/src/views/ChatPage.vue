@@ -98,6 +98,18 @@
         </div>
       </header>
 
+      <!-- ========== 演示版提示条 ========== -->
+      <div class="demo-tips">
+        <div class="demo-tip tip-llm">
+          <el-icon><Warning /></el-icon>
+          <span>请配置大模型 Key，聊天才能启动 LLM 回答；未配置时仅为模板回答。</span>
+        </div>
+        <div class="demo-tip tip-orders">
+          <el-icon><Document /></el-icon>
+          <span>演示版只有 ORDER20261001001 ~ ORDER20261001010 有基础订单数据，可输入订单号继续查询。</span>
+        </div>
+      </div>
+
       <div class="message-area" ref="messageAreaRef">
         <div v-if="messages.length === 0" class="empty-chat">
           <el-icon :size="56" color="#cbd5e1"><ChatDotRound /></el-icon>
@@ -193,7 +205,7 @@
             type="textarea"
             :autosize="{ minRows: 1, maxRows: 4 }"
             resize="none"
-            placeholder="请描述您的问题，例如：我想查订单 ORDER20260926001"
+            placeholder="请描述您的问题，例如：我想查订单 ORDER20261001001"
             @keydown.enter="handleEnter"
             @focus="showHistory = true"
             @blur="handleBlur"
@@ -282,7 +294,7 @@ const sessionsLoading = ref(false)
 
 // ============ 快捷查询 ============
 const quickActions = [
-  { label: '查订单', text: '我想查订单 ORDER20260926001 的详细信息', icon: Document },
+  { label: '查订单', text: '我想查订单 ORDER20261001001 的详细信息', icon: Document },
   { label: '查物流', text: '我的快递到哪了', icon: Van },
   { label: '申请退款', text: '我要申请退款', icon: Money },
   { label: '商品咨询', text: '无线耳机续航多久', icon: Goods },
@@ -701,6 +713,37 @@ onMounted(async () => {
     align-items: center;
     gap: 8px;
   }
+}
+
+.demo-tips {
+  padding: 8px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.demo-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.tip-llm {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.tip-orders {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
 }
 
 .message-area {
