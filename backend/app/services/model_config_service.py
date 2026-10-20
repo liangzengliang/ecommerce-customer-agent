@@ -22,6 +22,7 @@ class ModelConfigService:
                 .where(ModelConfig.is_default == True)   # noqa: E712
                 .where(ModelConfig.is_active == True)    # ★ 只查启用的
                 .where(ModelConfig.status == "正常")
+                .where(ModelConfig.api_key != "")       # ★ 只选有 API Key 的
                 .limit(1)
             )
             result = await db.execute(stmt)

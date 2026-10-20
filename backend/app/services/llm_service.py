@@ -19,7 +19,7 @@ async def is_llm_available() -> bool:
     2. 否则 .env 配置了 OPENAI_API_KEY → 可用
     3. 否则不可用（走离线规则回复）
     """
-    # 1. 数据库有默认模型配置（网友配置的）→ 可用
+    # 1. 数据库有带 API Key 的默认模型配置（网友配置的）→ 可用
     try:
         db_config = await model_config_service.get_default_chat_model()
         if db_config:
