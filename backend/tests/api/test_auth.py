@@ -223,3 +223,49 @@ async def test_model_config_isolated_between_users(client):
     ids_a = [m["id"] for m in lst_a.json()]
     assert model_id in ids_a
 
+
+
+@pytest.mark.asyncio
+async def test_relogin_resets_model_configs(client):
+    """重新登录时自动清除该账号遗留的模型配置（防止他人复用 API Key）"""
+    username = "relogin_reset_user"
+    password = "pass123456"
+    reg = await client.post("/api/v1/auth/register", json={
+        "username": username,
+        "password": password,
+    })
+    assert reg.status_code == 200
+    token = reg.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 创建模型配置
+    create = await client.post("/api/v1/models/create", json={
+        "name": "leaked-llm",
+        "provider": "openai",
+        "type": "chat",
+        "model": "gpt-3.5-turbo",
+        "base_url": "https://api.openai.com/v1",
+        "api_key": "sk-leaked",
+        "temperature": 0.3,
+        "max_tokens": 100,
+    }, headers=headers)
+    assert create.status_code == 200, create.text
+    model_id = create.json()["id"]
+
+    # 先退出（清除在线标记），再重新登录（模拟退出后再次登录）
+    logout = await client.post("/api/v1/auth/logout", headers=headers)
+    assert logout.status_code == 200
+
+    login2 = await client.post("/api/v1/auth/login", data={
+        "username": username,
+        "password": password,
+    })
+    assert login2.status_code == 200
+    token2 = login2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    # 旧模型配置已被清除
+    lst = await client.get("/api/v1/models/list", headers=headers2)
+    assert lst.status_code == 200
+    ids = [m["id"] for m in lst.json()]
+    assert model_id not in ids

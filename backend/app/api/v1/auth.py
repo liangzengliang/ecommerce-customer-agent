@@ -100,6 +100,11 @@ async def login(
         )
     token = create_access_token({"sub": str(user.id)})
     await redis.set(online_key, token, ex=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+
+    # 重新登录时重置该账号的模型配置，防止他人复用上次遗留的 API Key
+    await db.execute(delete(ModelConfig).where(ModelConfig.user_id == user.id))
+    await db.commit()
+
     return TokenResponse(access_token=token, user_id=user.id, username=user.username)
 
 
