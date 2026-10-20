@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'logs',
         name: 'Logs',
-        component: () => import('@/views/SessionHistory.vue'),
+        component: () => import('@/views/RunLogs.vue'),
         meta: { title: '运行日志' },
       },
       {
@@ -60,19 +60,19 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'monitor',
         name: 'Monitor',
-        component: () => import('@/views/SessionHistory.vue'),
+        component: () => import('@/views/SystemMonitor.vue'),
         meta: { title: '系统监控' },
       },
       {
         path: 'monitor-agent',
         name: 'MonitorAgent',
-        component: () => import('@/views/SessionHistory.vue'),
+        component: () => import('@/views/RunMonitor.vue'),
         meta: { title: '运行监控' },
       },
       {
         path: 'tools',
         name: 'Tools',
-        component: () => import('@/views/SessionHistory.vue'),
+        component: () => import('@/views/SystemTools.vue'),
         meta: { title: '系统工具' },
       },
     ],
