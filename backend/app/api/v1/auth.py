@@ -9,9 +9,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import hash_password, verify_password, create_access_token, get_current_user
 from app.core.demo_limit import check_demo_limit
 from app.core.redis_client import get_redis
+from app.core.config import settings
 from app.models.user import User
 from app.models.model_config import ModelConfig
 from sqlalchemy import delete
