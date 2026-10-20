@@ -112,7 +112,7 @@ async def list_models(
 async def create_model(
     request: ModelConfigCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     if request.is_default:
         await db.execute(
@@ -126,6 +126,7 @@ async def create_model(
 
     data = request.model_dump()
     data["is_active"] = True       # 新建时默认启用
+    data["user_id"] = current_user.id
     model = ModelConfig(**data)
     db.add(model)
     await db.commit()

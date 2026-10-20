@@ -28,18 +28,6 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '数据大屏' },
       },
       {
-        path: 'projects',
-        name: 'Projects',
-        component: () => import('@/views/ProjectList.vue'),
-        meta: { title: '项目管理' },
-      },
-      {
-        path: 'projects/:id',
-        name: 'ProjectDetail',
-        component: () => import('@/views/ProjectDetail.vue'),
-        meta: { title: '项目详情' },
-      },
-      {
         path: 'knowledge',
         name: 'Knowledge',
         component: () => import('@/views/KnowledgeBase.vue'),

@@ -153,7 +153,6 @@ interface MenuItem {
 
 const menus: MenuItem[] = [
   { title: '首页', path: '/dashboard', icon: HomeFilled },
-  { title: '项目管理', path: '/projects', icon: Collection },
   {
     title: '系统管理',
     icon: Setting,

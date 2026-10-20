@@ -11,7 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.demo_limit import check_demo_limit
+from app.core.redis_client import get_redis
 from app.models.user import User
+from app.models.model_config import ModelConfig
+from sqlalchemy import delete
 from app.schemas.auth import RegisterRequest, TokenResponse
 
 router = APIRouter()
@@ -43,7 +46,17 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     await db.commit()
     await db.refresh(user)
 
+    # Demo: single account single online check
+    redis = get_redis()
+    online_key = "online:" + user.username
+    existing = await redis.get(online_key)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="该账号已在其他设备登录，请先退出或使用其他备用账号",
+        )
     token = create_access_token({"sub": str(user.id)})
+    await redis.set(online_key, token, ex=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     return TokenResponse(access_token=token, user_id=user.id, username=user.username)
 
 @router.post("/login", response_model=TokenResponse)
@@ -75,5 +88,28 @@ async def login(
             detail="用户已被禁用",
         )
 
+    # Demo: single account single online check
+    redis = get_redis()
+    online_key = "online:" + user.username
+    existing = await redis.get(online_key)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="该账号已在其他设备登录，请先退出或使用其他备用账号",
+        )
     token = create_access_token({"sub": str(user.id)})
+    await redis.set(online_key, token, ex=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     return TokenResponse(access_token=token, user_id=user.id, username=user.username)
+
+
+@router.post("/logout")
+async def logout(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Logout: clear online flag and delete this user created model configs."""
+    redis = get_redis()
+    await redis.delete("online:" + current_user.username)
+    await db.execute(delete(ModelConfig).where(ModelConfig.user_id == current_user.id))
+    await db.commit()
+    return {"success": True, "message": "已退出登录，模型配置已清除"}

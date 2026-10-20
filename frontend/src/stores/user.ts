@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { login as loginApi, register as registerApi } from '@/api/user'
+import api from '@/api/index'
 
 export const useUserStore = defineStore('user', () => {
   // ===== 状态 =====
@@ -38,7 +39,12 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /** 登出 */
-  function logout() {
+  async function logout() {
+    try {
+      await api.post('/auth/logout')
+    } catch (e) {
+      // ignore: still clear local state
+    }
     token.value = ''
     userId.value = null
     username.value = ''

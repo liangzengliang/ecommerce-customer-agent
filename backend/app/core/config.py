@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     # ----- JWT 认证配置 -----
     SECRET_KEY: str = "demo-only-change-me-to-a-random-secret-key"  # 密钥（生产必须更换）
     ALGORITHM: str = "HS256"                          # 签名算法
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440           # Token 有效期（分钟），默认 24 小时
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30           # Token 有效期（分钟），默认 24 小时
 
     # ----- CORS 配置 -----
     CORS_ORIGINS: list[str] = ["*"]                   # 允许的来源，生产环境应指定具体域名

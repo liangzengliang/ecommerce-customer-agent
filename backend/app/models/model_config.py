@@ -15,6 +15,7 @@ class ModelConfig(Base):
     __tablename__ = "model_configs"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, default=0, index=True)   # owner user id (demo: deleted on logout)
     name = Column(String(100), nullable=False)
     provider = Column(String(50), nullable=False)
     type = Column(Enum("chat", "embedding"), nullable=False)

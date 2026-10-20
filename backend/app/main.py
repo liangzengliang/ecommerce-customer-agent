@@ -32,14 +32,10 @@ from app.api.v1 import router as v1_router
 # 导入所有模型（确保注册到 Base.metadata）
 from app.models import (
     User, Product, Order, Knowledge, Intent, Agent, ModelConfig,
-    Project, ProjectMember, ProjectTask, ProjectRisk,
-    ProjectMeeting, ProjectDocument, ProjectChange, ProjectComment,
 )
 # 注册每日重置的业务表
 register_reset_models([
-    Product, Order, Knowledge, Intent, Project, Agent, ModelConfig,
-    ProjectMember, ProjectTask, ProjectRisk,
-    ProjectMeeting, ProjectDocument, ProjectChange, ProjectComment,
+    Product, Order, Knowledge, Intent, Agent, ModelConfig,
 ])
 
 

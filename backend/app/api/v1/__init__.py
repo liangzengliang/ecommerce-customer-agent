@@ -16,7 +16,6 @@ from app.api.v1 import (
     models,  # → 新增
     memory,  # → 新增
     sessions,       # → 新增
-    project,        # → 新增：项目管理
 )
 
 router = APIRouter()
@@ -43,5 +42,3 @@ router.include_router(models.router, prefix="/models", tags=["模型配置"])   
 router.include_router(memory.router, prefix="/memory", tags=["记忆库"])      # → 新增
 # 会话列表
 router.include_router(sessions.router, prefix="/sessions", tags=["会话列表"])  # → 新增
-# 项目管理
-router.include_router(project.router, prefix="/project", tags=["项目管理"])  # → 新增

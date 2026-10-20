@@ -1,6 +1,6 @@
 """
 演示模式种子数据脚本
-用途：为 GitHub Demo 注入 10 条演示数据（商品/订单/知识/项目等）。
+用途：为 GitHub Demo 注入 10 条演示数据（商品/订单/知识库等）。
 演示账号：demo / demo123456
 说明：演示模式下每天凌晨 12 点会自动调用本脚本恢复数据。
 用法：
@@ -18,8 +18,6 @@ from app.core.security import hash_password
 from app.models import (
     User, Product, Order, OrderItem, Knowledge, Intent,
     Agent, ModelConfig,
-    Project, ProjectMember, ProjectTask, ProjectRisk,
-    ProjectMeeting, ProjectDocument, ProjectChange, ProjectComment,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -93,11 +91,6 @@ DEMO_INTENTS = [
     {"intent_name": "闲聊/未知", "intent_code": "FALLBACK", "handler_type": "fallback", "priority": 0},
 ]
 
-# ============ 演示项目（2 个） ============
-DEMO_PROJECTS = [
-    {"name": "电商智能客服系统上线", "code": "CS-ONLINE", "description": "负责电商智能客服系统的上线部署与验收。", "status": "active", "priority": "high", "progress": 60},
-    {"name": "618 大促活动支持", "code": "SALE-618", "description": "支撑 618 大促期间的客服保障与系统稳定性。", "status": "planning", "priority": "urgent", "progress": 20},
-]
 
 
 async def create_tables_if_not_exists():
@@ -117,8 +110,13 @@ async def seed_users(db):
     """演示用户（demo 账号 + 普通用户）"""
     users = [
         {"username": "demo", "password": "demo123456", "email": "demo@example.com", "phone": "13800000001", "user_type": "admin"},
-        {"username": "alice", "password": "demo123456", "email": "alice@example.com", "phone": "13800000002", "user_type": "customer"},
-        {"username": "bob", "password": "demo123456", "email": "bob@example.com", "phone": "13800000003", "user_type": "customer"},
+        {"username": "demo2", "password": "demo123456", "email": "demo2@example.com", "phone": "13800000002", "user_type": "customer"},
+        {"username": "demo3", "password": "demo123456", "email": "demo3@example.com", "phone": "13800000003", "user_type": "customer"},
+        {"username": "demo4", "password": "demo123456", "email": "demo4@example.com", "phone": "13800000004", "user_type": "customer"},
+        {"username": "demo5", "password": "demo123456", "email": "demo5@example.com", "phone": "13800000005", "user_type": "customer"},
+        {"username": "alice", "password": "demo123456", "email": "alice@example.com", "phone": "13800000006", "user_type": "customer"},
+        {"username": "bob", "password": "demo123456", "email": "bob@example.com", "phone": "13800000007", "user_type": "customer"},
+        {"username": "carol", "password": "demo123456", "email": "carol@example.com", "phone": "13800000008", "user_type": "customer"},
     ]
     created = 0
     for u in users:
@@ -233,56 +231,6 @@ async def seed_model_configs(db):
     logger.info("✅ 演示模型配置就绪（2 条）")
 
 
-async def seed_projects(db):
-    """项目 + 成员 + 少量子数据"""
-    demo_user = (await db.execute(select(User).where(User.username == "demo"))).scalar_one_or_none()
-    user_id = demo_user.id if demo_user else 1
-
-    for idx, p in enumerate(DEMO_PROJECTS):
-        exists = (await db.execute(select(Project).where(Project.code == p["code"]))).scalar_one_or_none()
-        if exists:
-            continue
-        project = Project(**p, owner_id=user_id, created_by=user_id,
-                          start_date=datetime.now().date(),
-                          due_date=(datetime.now() + timedelta(days=30)).date())
-        db.add(project)
-        await db.flush()
-
-        # 成员
-        db.add(ProjectMember(project_id=project.id, user_id=user_id, role="owner"))
-
-        # 任务
-        tasks = [
-            {"title": "需求调研", "status": "done", "priority": "high"},
-            {"title": "系统开发", "status": "in_progress", "priority": "high"},
-            {"title": "上线验收", "status": "todo", "priority": "medium"},
-        ]
-        for t in tasks:
-            db.add(ProjectTask(project_id=project.id, title=t["title"], status=t["status"],
-                               priority=t["priority"], assignee_id=user_id))
-
-        # 风险
-        db.add(ProjectRisk(project_id=project.id, title="演示环境稳定性风险",
-                           description="演示环境资源有限，需关注并发", level="medium", status="open", owner_id=user_id))
-
-        # 会议
-        db.add(ProjectMeeting(project_id=project.id, title="项目周会", meeting_date=datetime.now(),
-                              location="线上会议", attendees="项目组", agenda="进度同步", minutes="按计划推进"))
-
-        # 文档
-        db.add(ProjectDocument(project_id=project.id, title="项目需求文档", doc_type="requirement",
-                                 content="本项目为电商智能客服系统演示项目。", version="v1.0", uploaded_by=user_id))
-
-        # 变更
-        db.add(ProjectChange(project_id=project.id, title="增加演示数据",
-                            description="为演示增加种子数据", change_type="scope", status="implemented", requester_id=user_id))
-
-        # 评论
-        db.add(ProjectComment(project_id=project.id, user_id=user_id, content="项目启动，加油！"))
-    await db.commit()
-    logger.info("✅ 演示项目就绪（2 个）")
-
-
 async def seed_all_demo_data():
     """主入口：注入全部演示数据"""
     await create_tables_if_not_exists()
@@ -294,7 +242,6 @@ async def seed_all_demo_data():
         await seed_intents(db)
         await seed_agents(db)
         await seed_model_configs(db)
-        await seed_projects(db)
     logger.info("===== 演示数据初始化完成 =====")
 
 

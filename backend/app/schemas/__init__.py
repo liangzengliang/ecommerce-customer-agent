@@ -23,17 +23,6 @@ from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse,Pr
 from app.schemas.model_config import (
     ModelConfigCreate, ModelConfigUpdate, ModelConfigResponse,
 )
-# ===== 项目管理 =====
-from app.schemas.project import (
-    ProjectCreate, ProjectUpdate, ProjectResponse,
-    ProjectMemberCreate, ProjectMemberResponse,
-    ProjectTaskCreate, ProjectTaskUpdate, ProjectTaskResponse,
-    ProjectRiskCreate, ProjectRiskUpdate, ProjectRiskResponse,
-    ProjectMeetingCreate, ProjectMeetingUpdate, ProjectMeetingResponse,
-    ProjectDocumentCreate, ProjectDocumentUpdate, ProjectDocumentResponse,
-    ProjectChangeCreate, ProjectChangeUpdate, ProjectChangeResponse,
-    ProjectCommentCreate, ProjectCommentResponse,
-)
 
 
 __all__ = [
@@ -53,13 +42,4 @@ __all__ = [
     "ProductCreate", "ProductUpdate", "ProductResponse","ProductSearchRequest",
     # model
     "ModelConfigCreate", "ModelConfigUpdate", "ModelConfigResponse",
-    # project
-    "ProjectCreate", "ProjectUpdate", "ProjectResponse",
-    "ProjectMemberCreate", "ProjectMemberResponse",
-    "ProjectTaskCreate", "ProjectTaskUpdate", "ProjectTaskResponse",
-    "ProjectRiskCreate", "ProjectRiskUpdate", "ProjectRiskResponse",
-    "ProjectMeetingCreate", "ProjectMeetingUpdate", "ProjectMeetingResponse",
-    "ProjectDocumentCreate", "ProjectDocumentUpdate", "ProjectDocumentResponse",
-    "ProjectChangeCreate", "ProjectChangeUpdate", "ProjectChangeResponse",
-    "ProjectCommentCreate", "ProjectCommentResponse",
 ]

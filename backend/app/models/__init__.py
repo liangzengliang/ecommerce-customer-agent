@@ -13,11 +13,6 @@ from app.models.knowledge import Knowledge
 from app.models.rating import ConversationRating
 from app.models.ticket import Ticket, TicketLog
 from app.models.model_config import ModelConfig       # → 新增
-# → 新增：项目管理
-from app.models.project import (
-    Project, ProjectMember, ProjectTask, ProjectRisk,
-    ProjectMeeting, ProjectDocument, ProjectChange, ProjectComment,
-)
 
 __all__ = [
     # 用户与客服
@@ -38,7 +33,4 @@ __all__ = [
     "Ticket", "TicketLog",
     # 模型配置
     "ModelConfig",                                     # → 新增
-    # 项目管理
-    "Project", "ProjectMember", "ProjectTask", "ProjectRisk",
-    "ProjectMeeting", "ProjectDocument", "ProjectChange", "ProjectComment",
 ]
