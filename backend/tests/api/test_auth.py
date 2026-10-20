@@ -174,3 +174,52 @@ async def test_logout_deletes_user_model_configs(client):
     assert lst2.status_code == 200
     ids2 = [m["id"] for m in lst2.json()]
     assert model_id not in ids2
+
+
+@pytest.mark.asyncio
+async def test_model_config_isolated_between_users(client):
+    """模型配置列表隔离：用户 A 的配置对用户 B 不可见"""
+    # 用户 A
+    reg_a = await client.post("/api/v1/auth/register", json={
+        "username": "iso_user_a",
+        "password": "pass123456",
+    })
+    assert reg_a.status_code == 200
+    token_a = reg_a.json()["access_token"]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    # 用户 A 创建模型配置
+    create = await client.post("/api/v1/models/create", json={
+        "name": "secret-llm",
+        "provider": "openai",
+        "type": "chat",
+        "model": "gpt-3.5-turbo",
+        "base_url": "https://api.openai.com/v1",
+        "api_key": "sk-secret",
+        "temperature": 0.3,
+        "max_tokens": 100,
+    }, headers=headers_a)
+    assert create.status_code == 200, create.text
+    model_id = create.json()["id"]
+
+    # 用户 B
+    reg_b = await client.post("/api/v1/auth/register", json={
+        "username": "iso_user_b",
+        "password": "pass123456",
+    })
+    assert reg_b.status_code == 200
+    token_b = reg_b.json()["access_token"]
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    # 用户 B 的列表不包含 A 的配置
+    lst_b = await client.get("/api/v1/models/list", headers=headers_b)
+    assert lst_b.status_code == 200
+    ids_b = [m["id"] for m in lst_b.json()]
+    assert model_id not in ids_b
+
+    # 用户 A 自己的列表包含该配置
+    lst_a = await client.get("/api/v1/models/list", headers=headers_a)
+    assert lst_a.status_code == 200
+    ids_a = [m["id"] for m in lst_a.json()]
+    assert model_id in ids_a
+

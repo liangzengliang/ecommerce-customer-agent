@@ -95,9 +95,12 @@ async def test_model(
 async def list_models(
     type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    stmt = select(ModelConfig).order_by(
+    # 只返回系统默认配置（user_id=0）和当前用户自己的配置，避免 API Key 泄露给其他网友
+    stmt = select(ModelConfig).where(
+        (ModelConfig.user_id == 0) | (ModelConfig.user_id == current_user.id)
+    ).order_by(
         ModelConfig.is_default.desc(),       # 默认的排前面
         ModelConfig.id.desc(),
     )
