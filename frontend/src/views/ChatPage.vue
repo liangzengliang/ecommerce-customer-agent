@@ -102,7 +102,7 @@
       <div class="demo-tips">
         <div class="demo-tip tip-llm">
           <el-icon><Warning /></el-icon>
-          <span>请配置大模型 Key，聊天才能启动 LLM 回答；未配置时仅为模板回答。</span>
+          <span>请到"记忆Agent-->模型配置"配置大模型 key，聊天才能启动 LLM 回答；未配置时仅为模板回答。</span>
         </div>
         <div class="demo-tip tip-orders">
           <el-icon><Document /></el-icon>

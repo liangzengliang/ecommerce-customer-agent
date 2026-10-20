@@ -53,6 +53,8 @@ async def get_llm_async(
             temperature=temperature if temperature is not None else db_config["temperature"],
             max_tokens=db_config["max_tokens"],
             streaming=streaming,
+            timeout=90,
+            max_retries=1,
         )
 
     # 2. 回退到 .env
@@ -63,6 +65,8 @@ async def get_llm_async(
         base_url=settings.OPENAI_BASE_URL,
         temperature=temperature if temperature is not None else 0.3,
         streaming=streaming,
+        timeout=90,
+        max_retries=1,
     )
 
 

@@ -6,7 +6,8 @@ import type { ChatRequest, ChatResponse } from '@/types/chat'
 
 /** 同步对话 */
 export function sendMessage(params: ChatRequest) {
-  return api.post<any, ChatResponse>('/chat', params)
+  // 聊天可能涉及 LLM 调用，耗时较长，单独放宽超时到 180 秒
+  return api.post<any, ChatResponse>('/chat', params, { timeout: 180000 })
 }
 
 /**
